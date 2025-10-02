@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Positive Cat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#000000',
+                        secondary: '#555555',
+                        light: '#F5F5F7',
+                        border: '#E2E2E7',
+                        error: '#ff3b30',
+                        neutral: '#6e6e73',
+                        dark: '#1d1d1f',
+                        lightgray: '#e8e8ed'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(200, 200, 200, 0.15);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            }
+            
+            .gradient-bg {
+                background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            }
+            
+            .btn-hover {
+                transition: all 0.2s ease;
+            }
+            
+            .btn-hover:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            }
+            
+            .input-focus {
+                transition: all 0.2s ease;
+            }
+            
+            .input-focus:focus {
+                box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+                outline: none;
+                border-color: #000000;
+            }
+            
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 5px;
+            }
+            
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background-color: rgba(0, 0, 0, 0.2);
+                border-radius: 20px;
+            }
+            
+            .page {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow-y: auto;
+                transition: transform 0.3s ease;
+            }
+            
+            .page.active {
+                transform: translateX(0);
+            }
+            
+            .page.inactive {
+                transform: translateX(100%);
+            }
+            
+            .page.inactive-left {
+                transform: translateX(-100%);
+            }
+            
+            .auth-container {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 20px;
+            }
+            
+            .notification {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-200%);
+                padding: 12px 20px;
+                border-radius: 10px;
+                background-color: #000;
+                color: #fff;
+                font-size: 14px;
+                transition: transform 0.3s ease;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .notification.show {
+                transform: translateX(-50%) translateY(0);
+            }
+            
+            .notification.error {
+                background-color: #ff3b30;
+            }
+            
+            .modal-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            
+            .modal-backdrop.show {
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .modal-content {
+                background-color: #fff;
+                border-radius: 20px;
+                width: 90%;
+                max-width: 500px;
+                max-height: 80vh;
+                overflow-y: auto;
+                padding: 24px;
+                transform: scale(0.9);
+                transition: transform 0.3s ease;
+            }
+            
+            .modal-backdrop.show .modal-content {
+                transform: scale(1);
+            }
+            
+            .modal-close {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                background: none;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+                color: #555;
+                transition: color 0.2s ease;
+            }
+            
+            .modal-close:hover {
+                color: #000;
+            }
+
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-light min-h-screen font-sans text-primary custom-scrollbar overflow-x-hidden">
+    <!-- Authentication Pages -->
+    <div id="loginPage" class="page active auth-container">
+        <div class="max-w-md mx-auto w-full">
+            <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-semibold text-center mb-8 tracking-tight">
+                Positive Cat
+            </h1>
+            
+            <div class="glass-effect rounded-3xl p-6 shadow-sm mb-4">
+                <h2 class="text-xl font-semibold mb-5 text-center">Welcome Back</h2>
+                
+                <div class="mb-4">
+                    <label for="loginUsername" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="loginUsername" class="w-full px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="Enter your username">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="loginPassword" class="w-full px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="Enter your password">
+                </div>
+                
+                <div id="loginError" class="text-error text-sm mb-4 hidden"></div>
+                
+                <button id="loginBtn" class="w-full py-3 rounded-xl gradient-bg text-white font-medium btn-hover mb-3">
+                    <i class="fa fa-sign-in mr-2"></i>Login
+                </button>
+                
+                <button id="switchToRegisterBtn" class="w-full py-3 rounded-xl border border-primary text-primary font-medium btn-hover">
+                    Create new account
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="registerPage" class="page inactive auth-container">
+        <div class="max-w-md mx-auto w-full">
+            <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-semibold text-center mb-8 tracking-tight">
+                Positive Cat
+            </h1>
+            
+            <div class="glass-effect rounded-3xl p-6 shadow-sm mb-4">
+                <h2 class="text-xl font-semibold mb-5 text-center">Create Account</h2>
+                
+                <div class="mb-4">
+                    <label for="registerUsername" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="registerUsername" class="w-full px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="Choose a username">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="registerPassword" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="registerPassword" class="w-full px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="Create a password (min. 6 chars)">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="registerConfirmPassword" class="block text-sm font-medium mb-1">Confirm Password</label>
+                    <input type="password" id="registerConfirmPassword" class="w-full px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="Confirm your password">
+                </div>
+                
+                <div id="registerError" class="text-error text-sm mb-4 hidden"></div>
+                
+                <button id="registerBtn" class="w-full py-3 rounded-xl gradient-bg text-white font-medium btn-hover mb-3">
+                    <i class="fa fa-user-plus mr-2"></i>Register
+                </button>
+                
+                <button id="switchToLoginBtn" class="w-full py-3 rounded-xl border border-primary text-primary font-medium btn-hover">
+                    Already have an account? Login
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main application container -->
+    <div id="appContainer" class="min-h-screen flex flex-col relative page inactive">
+        <!-- Header navigation -->
+        <header class="glass-effect py-4 px-6 sticky top-0 z-50 shadow-sm flex justify-between items-center">
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-semibold tracking-tight">
+                Positive Cat
+            </h1>
+            <div class="flex items-center">
+                <span id="currentUser" class="text-sm mr-3"></span>
+                <button id="logoutBtn" class="text-sm text-secondary hover:text-primary transition">
+                    <i class="fa fa-sign-out mr-1"></i>Logout
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main content area -->
+        <main class="flex-1 relative overflow-hidden">
+            <!-- Page 1: Today - Successes and Universe Letter -->
+            <div id="todayPage" class="page active p-6 custom-scrollbar">
+                <div class="glass-effect rounded-3xl p-6 mb-6 shadow-sm">
+                    <h2 class="text-xl font-semibold mb-2 tracking-tight">每日成功小事</h2>
+                    <p class="text-secondary mb-5 text-sm">记录今天的5个小成就，培养感恩心态</p>
+                    
+                    <div id="successItemsContainer" class="space-y-3 mb-5">
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-sm mr-2">1</span>
+                            <input type="text" class="success-item flex-1 px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="第一个成功的时刻...">
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-sm mr-2">2</span>
+                            <input type="text" class="success-item flex-1 px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="第二个成功的时刻...">
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-sm mr-2">3</span>
+                            <input type="text" class="success-item flex-1 px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="第三个成功的时刻...">
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-sm mr-2">4</span>
+                            <input type="text" class="success-item flex-1 px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="第四个成功的时刻...">
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-sm mr-2">5</span>
+                            <input type="text" class="success-item flex-1 px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="第五个成功的时刻...">
+                        </div>
+                        <button id="addMoreItemBtn" class="w-full py-2 rounded-xl border border-dashed border-primary text-primary font-medium text-sm btn-hover">
+                            <i class="fa fa-plus mr-1"></i>添加更多
+                        </button>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <button id="universeLetterBtn" class="w-full py-3 rounded-xl border border-primary text-primary font-medium btn-hover mb-3" disabled>
+                        <i class="fa fa-envelope-o mr-2"></i>获取宇宙来信
+                    </button>
+                    <button id="saveSummaryBtn" class="w-full py-3 rounded-xl gradient-bg text-white font-medium btn-hover hidden">
+                        <i class="fa fa-save mr-2"></i>保存记录
+                    </button>
+                </div>
+                
+                <!-- Universe Letter -->
+                <div id="universeLetterContainer" class="glass-effect rounded-3xl p-6 mb-6 shadow-sm hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">来自宇宙的信</h3>
+                        <span id="letterDate" class="text-sm text-secondary"></span>
+                    </div>
+                    <div id="letterContent" class="min-h-[150px] leading-relaxed mb-4 text-secondary">
+                        <!-- 信件内容将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Page 2: Memories - View History -->
+            <div id="memoriesPage" class="page inactive p-6 custom-scrollbar">
+                <div class="glass-effect rounded-3xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4">过往回忆</h3>
+                    <div id="historyContainer" class="space-y-3">
+                        <!-- 历史记录将在这里生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 3: Affirmations - Morning affirmations -->
+            <div id="affirmationsPage" class="page inactive p-6 custom-scrollbar">
+                <div class="glass-effect rounded-3xl p-6 mb-6 shadow-sm">
+                    <h2 class="text-xl font-semibold mb-5 tracking-tight">早晨肯定语</h2>
+                    
+                    <div class="mb-6">
+                        <label for="topic" class="block text-dark font-medium mb-3 text-lg">你想肯定什么：</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input 
+                                type="text" 
+                                id="topic" 
+                                placeholder="例如：健康、爱、成功..." 
+                                class="flex-1 px-4 py-3 rounded-lg border border-lightgray focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-custom text-lg"
+                            >
+                            <button 
+                                id="generateBtn" 
+                                class="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 active:bg-primary/80 transition-custom flex items-center justify-center gap-2"
+                            >
+                                <span>生成</span>
+                                <i class="fa fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading state -->
+                    <div id="loading" class="hidden flex items-center justify-center py-8">
+                        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                        <p class="ml-3 text-neutral">正在生成肯定语...</p>
+                    </div>
+                    
+                    <!-- Result display -->
+                    <div id="result" class="hidden">
+                        <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-100">你的肯定语：</h3>
+                        <ul id="affirmations" class="space-y-3">
+                            <!-- 肯定语将在这里生成 -->
+                        </ul>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <div id="error" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-4">
+                        <p id="errorMessage"></p>
+                        <p class="text-sm mt-2">详情：<span id="errorDetails" class="font-mono"></span></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Bottom navigation -->
+        <footer class="glass-effect py-3 px-6 sticky bottom-0 z-50 shadow-sm border-t border-border">
+            <div class="flex justify-around">
+                <button id="todayBtn" class="flex flex-col items-center text-primary">
+                    <i class="fa fa-pencil text-xl mb-1"></i>
+                    <span class="text-xs">成功小事</span>
+                </button>
+                <button id="affirmationsBtn" class="flex flex-col items-center text-secondary">
+                    <i class="fa fa-star text-xl mb-1"></i>
+                    <span class="text-xs">肯定语</span>
+                </button>
+                <button id="memoriesBtn" class="flex flex-col items-center text-secondary">
+                    <i class="fa fa-book text-xl mb-1"></i>
+                    <span class="text-xs">记录档案</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Notification component -->
+    <div id="notification" class="notification">保存成功！</div>
+    
+    <!-- Memory Detail Modal -->
+    <div id="memoryModal" class="modal-backdrop">
+        <div class="modal-content relative">
+            <button id="modalCloseBtn" class="modal-close">
+                <i class="fa fa-times"></i>
+            </button>
+            <h3 class="text-lg font-semibold mb-3" id="modalDate"></h3>
+            
+            <div class="mb-5">
+                <h4 class="font-medium mb-2">成功时刻：</h4>
+                <ul id="modalSuccessItems" class="list-disc list-inside space-y-1 text-secondary pl-2"></ul>
+            </div>
+            
+            <div class="mb-5">
+                <h4 class="font-medium mb-2">来自宇宙的信：</h4>
+                <div id="modalLetterContent" class="text-secondary leading-relaxed">
+                    <!-- 信件内容将在这里显示 -->
+                </div>
+            </div>
+            
+            <button id="editMemoryBtn" class="w-full py-2 rounded-xl border border-primary text-primary font-medium btn-hover">
+                <i class="fa fa-pencil mr-2"></i>编辑
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global state management
+        const state = {
+            successItems: [],
+            history: [],
+            currentLetter: null, // 当前生成的信件内容
+            isLoggedIn: false,
+            userId: null, // 登录用户ID
+            username: null, // 登录用户名
+            currentPage: 'today', // 'today', 'memories' 或 'affirmations'
+            editingRecordId: null // 正在编辑的记录日期
+        };
+
+        // DOM elements
+        const elements = {
+            // Auth elements
+            loginPage: document.getElementById('loginPage'),
+            registerPage: document.getElementById('registerPage'),
+            loginUsername: document.getElementById('loginUsername'),
+            loginPassword: document.getElementById('loginPassword'),
+            loginBtn: document.getElementById('loginBtn'),
+            loginError: document.getElementById('loginError'),
+            registerUsername: document.getElementById('registerUsername'),
+            registerPassword: document.getElementById('registerPassword'),
+            registerConfirmPassword: document.getElementById('registerConfirmPassword'),
+            registerBtn: document.getElementById('registerBtn'),
+            registerError: document.getElementById('registerError'),
+            switchToRegisterBtn: document.getElementById('switchToRegisterBtn'),
+            switchToLoginBtn: document.getElementById('switchToLoginBtn'),
+            currentUser: document.getElementById('currentUser'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            
+            // App container
+            appContainer: document.getElementById('appContainer'),
+            
+            // Pages
+            todayPage: document.getElementById('todayPage'),
+            memoriesPage: document.getElementById('memoriesPage'),
+            affirmationsPage: document.getElementById('affirmationsPage'),
+            
+            // Navigation buttons
+            todayBtn: document.getElementById('todayBtn'),
+            memoriesBtn: document.getElementById('memoriesBtn'),
+            affirmationsBtn: document.getElementById('affirmationsBtn'),
+            
+            // Today page elements
+            successItemsContainer: document.getElementById('successItemsContainer'),
+            successItems: document.querySelectorAll('.success-item'),
+            addMoreItemBtn: document.getElementById('addMoreItemBtn'),
+            saveSummaryBtn: document.getElementById('saveSummaryBtn'),
+            universeLetterBtn: document.getElementById('universeLetterBtn'),
+            universeLetterContainer: document.getElementById('universeLetterContainer'),
+            letterDate: document.getElementById('letterDate'),
+            letterContent: document.getElementById('letterContent'),
+            
+            // Memories page elements
+            historyContainer: document.getElementById('historyContainer'),
+            
+            // Notification
+            notification: document.getElementById('notification'),
+            
+            // Modal elements
+            memoryModal: document.getElementById('memoryModal'),
+            modalCloseBtn: document.getElementById('modalCloseBtn'),
+            modalDate: document.getElementById('modalDate'),
+            modalSuccessItems: document.getElementById('modalSuccessItems'),
+            modalLetterContent: document.getElementById('modalLetterContent'),
+            editMemoryBtn: document.getElementById('editMemoryBtn'),
+
+            // Affirmations elements
+            topicInput: document.getElementById('topic'),
+            generateBtn: document.getElementById('generateBtn'),
+            loading: document.getElementById('loading'),
+            result: document.getElementById('result'),
+            affirmations: document.getElementById('affirmations'),
+            error: document.getElementById('error'),
+            errorMessage: document.getElementById('errorMessage'),
+            errorDetails: document.getElementById('errorDetails')
+        };
+
+        // Initialize application
+        function initApp() {
+            // Bind event listeners
+            bindEventListeners();
+            
+            // Check if user is already logged in
+            checkLoginStatus();
+        }
+
+        // Bind all event listeners
+        function bindEventListeners() {
+            // Authentication events
+            elements.loginBtn.addEventListener('click', handleLogin);
+            elements.registerBtn.addEventListener('click', handleRegister);
+            elements.switchToRegisterBtn.addEventListener('click', () => switchAuthPage('register'));
+            elements.switchToLoginBtn.addEventListener('click', () => switchAuthPage('login'));
+            elements.logoutBtn.addEventListener('click', handleLogout);
+            
+            // Page navigation
+            elements.todayBtn.addEventListener('click', () => navigateToPage('today'));
+            elements.memoriesBtn.addEventListener('click', () => navigateToPage('memories'));
+            elements.affirmationsBtn.addEventListener('click', () => navigateToPage('affirmations'));
+            
+            // Today page events
+            elements.addMoreItemBtn.addEventListener('click', addMoreSuccessItem);
+            elements.saveSummaryBtn.addEventListener('click', saveSummary);
+            elements.universeLetterBtn.addEventListener('click', requestUniverseLetter);
+            
+            // Modal events
+            elements.modalCloseBtn.addEventListener('click', closeMemoryModal);
+            elements.memoryModal.addEventListener('click', (e) => {
+                if (e.target === elements.memoryModal) {
+                    closeMemoryModal();
+                }
+            });
+            elements.editMemoryBtn.addEventListener('click', editMemory);
+            
+            // Listen for input changes to enable/disable buttons
+            document.addEventListener('input', (e) => {
+                if (e.target.classList.contains('success-item')) {
+                    checkSuccessItemsComplete();
+                }
+            });
+            
+            // Affirmations events
+            elements.generateBtn.addEventListener('click', generateAffirmations);
+            
+            // 删除按钮事件委托
+            elements.successItemsContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-item-btn')) {
+                    const itemContainer = e.target.closest('#successItemsContainer > div:not(#addMoreItemBtn)');
+                    if (itemContainer) {
+                        deleteSuccessItem(itemContainer);
+                    }
+                }
+            });
+        }
+
+        // Check if user is logged in
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('positiveCatCurrentUser');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                state.isLoggedIn = true;
+                state.userId = user.id;
+                state.username = user.username;
+                loadUserData();
+                showApp();
+            } else {
+                showAuthPage('login');
+            }
+        }
+
+        // Switch between auth pages
+        function switchAuthPage(page) {
+            if (page === 'register') {
+                elements.loginPage.classList.remove('active');
+                elements.loginPage.classList.add('inactive');
+                elements.registerPage.classList.remove('inactive');
+                elements.registerPage.classList.add('active');
+                clearAuthErrors();
+            } else {
+                elements.registerPage.classList.remove('active');
+                elements.registerPage.classList.add('inactive');
+                elements.loginPage.classList.remove('inactive');
+                elements.loginPage.classList.add('active');
+                clearAuthErrors();
+            }
+        }
+
+        // Show authentication page
+        function showAuthPage(page = 'login') {
+            elements.appContainer.classList.remove('active');
+            elements.appContainer.classList.add('inactive');
+            
+            if (page === 'register') {
+                elements.registerPage.classList.remove('inactive');
+                elements.registerPage.classList.add('active');
+                elements.loginPage.classList.remove('active');
+                elements.loginPage.classList.add('inactive');
+            } else {
+                elements.loginPage.classList.remove('inactive');
+                elements.loginPage.classList.add('active');
+                elements.registerPage.classList.remove('active');
+                elements.registerPage.classList.add('inactive');
+            }
+        }
+
+        // Show main application after login
+        function showApp() {
+            elements.loginPage.classList.remove('active');
+            elements.loginPage.classList.add('inactive');
+            elements.registerPage.classList.remove('active');
+            elements.registerPage.classList.add('inactive');
+            elements.appContainer.classList.remove('inactive');
+            elements.appContainer.classList.add('active');
+            
+            // Display current user
+            elements.currentUser.textContent = state.username;
+            
+            // Ensure memory page shows current user's data
+            displayHistory();
+            
+            // Initialize app after login
+            checkAndClearToday();
+        }
+
+        // Handle user login
+        function handleLogin() {
+            const username = elements.loginUsername.value.trim();
+            const password = elements.loginPassword.value.trim();
+            
+            clearAuthErrors();
+            
+            // Validate input
+            if (!username || !password) {
+                showAuthError('login', '请输入用户名和密码');
+                return;
+            }
+            
+            // Get all users from storage
+            const users = JSON.parse(localStorage.getItem('positiveCatUsers') || '[]');
+            const user = users.find(u => u.username === username);
+            
+            // Check if user exists and password matches
+            if (!user || !verifyPassword(password, user.passwordHash)) {
+                showAuthError('login', '用户名或密码无效');
+                return;
+            }
+            
+            // Login successful
+            state.isLoggedIn = true;
+            state.userId = user.id;
+            state.username = user.username;
+            
+            // Save current user session
+            localStorage.setItem('positiveCatCurrentUser', JSON.stringify({
+                id: user.id,
+                username: user.username
+            }));
+            
+            // Clear any potentially残留 data
+            state.history = [];
+            elements.historyContainer.innerHTML = '';
+            
+            // Load user data
+            loadUserData();
+            
+            // Show main app
+            showApp();
+            
+            // Clear form
+            elements.loginUsername.value = '';
+            elements.loginPassword.value = '';
+            
+            showNotification(`欢迎回来，${username}!`);
+        }
+
+        // Handle user registration
+        function handleRegister() {
+            const username = elements.registerUsername.value.trim();
+            const password = elements.registerPassword.value.trim();
+            const confirmPassword = elements.registerConfirmPassword.value.trim();
+            
+            clearAuthErrors();
+            
+            // Validate input
+            if (!username || !password || !confirmPassword) {
+                showAuthError('register', '请填写所有字段');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAuthError('register', '密码长度至少为6个字符');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showAuthError('register', '两次输入的密码不一致');
+                return;
+            }
+            
+            // Check if username already exists
+            const users = JSON.parse(localStorage.getItem('positiveCatUsers') || '[]');
+            if (users.some(u => u.username === username)) {
+                showAuthError('register', '用户名已存在');
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: generateUserId(),
+                username: username,
+                passwordHash: hashPassword(password),
+                createdAt: new Date().toISOString()
+            };
+            
+            // Save user
+            users.push(newUser);
+            localStorage.setItem('positiveCatUsers', JSON.stringify(users));
+            
+            // Create empty data for new user
+            localStorage.setItem(`positiveCatData_${newUser.id}`, JSON.stringify({
+                history: [],
+                lastUpdated: new Date().toISOString()
+            }));
+            
+            // Login the new user
+            state.isLoggedIn = true;
+            state.userId = newUser.id;
+            state.username = newUser.username;
+            
+            // Clear any potentially残留 data
+            state.history = [];
+            elements.historyContainer.innerHTML = '';
+            
+            // Show main app
+            showApp();
+            
+            // Clear form
+            elements.registerUsername.value = '';
+            elements.registerPassword.value = '';
+            elements.registerConfirmPassword.value = '';
+            
+            showNotification(`账号创建成功！欢迎，${username}!`);
+        }
+
+        // Handle user logout
+        function handleLogout() {
+            // Clear current user session
+            localStorage.removeItem('positiveCatCurrentUser');
+            
+            // Reset state
+            state.isLoggedIn = false;
+            state.userId = null;
+            state.username = null;
+            state.history = [];
+            
+            // Clear memory page content
+            elements.historyContainer.innerHTML = '';
+            
+            // Show login page
+            showAuthPage('login');
+            
+            showNotification('已成功退出登录');
+        }
+
+        // Show authentication error
+        function showAuthError(type, message) {
+            const errorElement = type === 'login' ? elements.loginError : elements.registerError;
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        // Clear authentication errors
+        function clearAuthErrors() {
+            elements.loginError.textContent = '';
+            elements.loginError.classList.add('hidden');
+            elements.registerError.textContent = '';
+            elements.registerError.classList.add('hidden');
+        }
+
+        // Generate unique user ID
+        function generateUserId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        // Simple password hashing (for demo purposes only)
+        function hashPassword(password) {
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(16);
+        }
+
+        // Verify password against hash
+        function verifyPassword(password, hash) {
+            return hashPassword(password) === hash;
+        }
+
+        // Navigate between pages
+        function navigateToPage(pageName) {
+            if (state.currentPage === pageName) return;
+            
+            // Update state
+            state.currentPage = pageName;
+            
+            // Reset all pages to inactive
+            elements.todayPage.classList.remove('active');
+            elements.todayPage.classList.add('inactive');
+            elements.memoriesPage.classList.remove('active');
+            elements.memoriesPage.classList.add('inactive');
+            elements.affirmationsPage.classList.remove('active');
+            elements.affirmationsPage.classList.add('inactive');
+            
+            // Reset all buttons to inactive
+            elements.todayBtn.classList.remove('text-primary');
+            elements.todayBtn.classList.add('text-secondary');
+            elements.memoriesBtn.classList.remove('text-primary');
+            elements.memoriesBtn.classList.add('text-secondary');
+            elements.affirmationsBtn.classList.remove('text-primary');
+            elements.affirmationsBtn.classList.add('text-secondary');
+            
+            // Activate the selected page
+            if (pageName === 'today') {
+                elements.todayPage.classList.remove('inactive');
+                elements.todayPage.classList.add('active');
+                elements.todayBtn.classList.remove('text-secondary');
+                elements.todayBtn.classList.add('text-primary');
+            } else if (pageName === 'memories') {
+                elements.memoriesPage.classList.remove('inactive');
+                elements.memoriesPage.classList.add('active');
+                elements.memoriesBtn.classList.remove('text-secondary');
+                elements.memoriesBtn.classList.add('text-primary');
+                // Refresh history when navigating to memories
+                displayHistory();
+            } else if (pageName === 'affirmations') {
+                elements.affirmationsPage.classList.remove('inactive');
+                elements.affirmationsPage.classList.add('active');
+                elements.affirmationsBtn.classList.remove('text-secondary');
+                elements.affirmationsBtn.classList.add('text-primary');
+            }
+        }
+
+        // Add more success items
+        function addMoreSuccessItem() {
+            const itemsCount = document.querySelectorAll('.success-item').length;
+            const newIndex = itemsCount + 1;
+            
+            const div = document.createElement('div');
+            div.className = 'flex items-center';
+            
+            // For items beyond 5, add delete button
+            const deleteButton = newIndex > 5 ? `
+                <button class="delete-item-btn ml-2 text-secondary hover:text-primary transition p-1">
+                    <i class="fa fa-times"></i>
+                </button>
+            ` : '';
+            
+            div.innerHTML = `
+                <span class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-sm mr-2">${newIndex}</span>
+                <input type="text" class="success-item flex-1 px-4 py-3 rounded-xl border border-border input-focus glass-effect" placeholder="${ordinalSuffix(newIndex)}个成功的时刻...">
+                ${deleteButton}
+            `;
+            
+            // Insert before "Add More" button
+            elements.successItemsContainer.insertBefore(div, elements.addMoreItemBtn);
+            
+            // Update button state
+            checkSuccessItemsComplete();
+        }
+
+        // Delete success item
+        function deleteSuccessItem(itemElement) {
+            itemElement.remove();
+            
+            // Update all item numbers
+            const items = document.querySelectorAll('#successItemsContainer > div:not(#addMoreItemBtn)');
+            items.forEach((item, index) => {
+                const numberSpan = item.querySelector('span:first-child');
+                const inputElement = item.querySelector('.success-item');
+                if (numberSpan && inputElement) {
+                    const newIndex = index + 1;
+                    numberSpan.textContent = newIndex;
+                    inputElement.placeholder = `${ordinalSuffix(newIndex)}个成功的时刻...`;
+                    
+                    // Add or remove delete button based on position
+                    const deleteBtn = item.querySelector('.delete-item-btn');
+                    if (newIndex > 5 && !deleteBtn) {
+                        // Add delete button
+                        const button = document.createElement('button');
+                        button.className = 'delete-item-btn ml-2 text-secondary hover:text-primary transition p-1';
+                        button.innerHTML = '<i class="fa fa-times"></i>';
+                        item.appendChild(button);
+                    } else if (newIndex <= 5 && deleteBtn) {
+                        // Remove delete button
+                        deleteBtn.remove();
+                    }
+                }
+            });
+            
+            // Update button state
+            checkSuccessItemsComplete();
+        }
+
+        // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
+        function ordinalSuffix(i) {
+            const j = i % 10,
+                  k = i % 100;
+            if (j === 1 && k !== 11) {
+                return i + "st";
+            }
+            if (j === 2 && k !== 12) {
+                return i + "nd";
+            }
+            if (j === 3 && k !== 13) {
+                return i + "rd";
+            }
+            return i + "th";
+        }
+
+        // Check if enough success items are completed to enable letter generation
+        function checkSuccessItemsComplete() {
+            const items = document.querySelectorAll('.success-item');
+            let completeCount = 0;
+            
+            items.forEach(item => {
+                if (item.value.trim() !== '') {
+                    completeCount++;
+                }
+            });
+            
+            // Need at least 5 items to generate letter
+            const canGenerateLetter = completeCount >= 5;
+            elements.universeLetterBtn.disabled = !canGenerateLetter;
+            
+            // Show tooltip when button is disabled
+            if (!canGenerateLetter) {
+                elements.universeLetterBtn.title = "请至少填写5个成功的时刻";
+            } else {
+                elements.universeLetterBtn.title = "";
+            }
+        }
+
+        // Show notification that automatically hides after 1.5 seconds
+        function showNotification(message = '保存成功！', isError = false) {
+            const notification = elements.notification;
+            notification.textContent = message;
+            notification.classList.toggle('error', isError);
+            notification.classList.add('show');
+            
+            // Hide after 1.5 seconds (1500ms)
+            setTimeout(() => {
+                notification.classList.remove('show', 'error');
+            }, 1500);
+        }
+
+        // Clear all success items
+        function clearSuccessItems() {
+            // Clear input fields
+            const items = document.querySelectorAll('.success-item');
+            items.forEach(item => {
+                item.value = '';
+            });
+            
+            // Remove extra items beyond the first 5
+            const allItemContainers = document.querySelectorAll('#successItemsContainer > div:not(#addMoreItemBtn)');
+            allItemContainers.forEach((container, index) => {
+                if (index >= 5) {
+                    container.remove();
+                }
+            });
+            
+            // Reset state and buttons
+            state.currentLetter = null;
+            elements.universeLetterBtn.disabled = true;
+            elements.universeLetterBtn.innerHTML = '<i class="fa fa-envelope-o mr-2"></i>获取宇宙来信';
+            
+            // Hide save button and universe letter area
+            elements.saveSummaryBtn.classList.add('hidden');
+            elements.universeLetterContainer.classList.add('hidden');
+        }
+
+        // Check if we should clear today's entries (new day)
+        function checkAndClearToday() {
+            if (!state.userId) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Get last saved date from user data
+            const userData = JSON.parse(localStorage.getItem(`positiveCatData_${state.userId}`) || '{"history":[]}');
+            const lastSavedEntry = userData.history
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                
+            const lastSavedDate = lastSavedEntry ? lastSavedEntry.date : null;
+            
+            // If last saved date exists and is different from today, clear the form
+            if (lastSavedDate && lastSavedDate !== today) {
+                clearSuccessItems();
+            }
+        }
+
+        // Save summary - Clear input after saving
+        function saveSummary() {
+            if (!state.userId) return;
+            
+            const items = document.querySelectorAll('.success-item');
+            const successItems = [];
+            
+            items.forEach(item => {
+                const value = item.value.trim();
+                if (value) {
+                    successItems.push(value);
+                }
+            });
+            
+            // Check for at least 5 entries
+            if (successItems.length < 5) {
+                showNotification('请至少填写5个成功的时刻才能保存', true);
+                return;
+            }
+            
+            // Ensure letter has been generated
+            if (!state.currentLetter && !state.editingRecordId) {
+                showNotification('请先获取宇宙来信', true);
+                return;
+            }
+            
+            const saveDate = state.editingRecordId || new Date().toISOString().split('T')[0];
+            
+            // Check if record already exists
+            const existingIndex = state.history.findIndex(item => item.date === saveDate);
+            
+            if (existingIndex >= 0) {
+                // Update existing record
+                const originalLetter = state.editingRecordId ? state.history[existingIndex].letter : state.currentLetter;
+                state.history[existingIndex] = {
+                    date: saveDate,
+                    successItems: successItems,
+                    letter: originalLetter
+                };
+                showNotification('更新成功！');
+            } else {
+                // Add new record with the generated letter
+                state.history.push({
+                    date: saveDate,
+                    successItems: successItems,
+                    letter: state.currentLetter
+                });
+                showNotification('保存成功！');
+            }
+            
+            // Save to local storage
+            saveUserData();
+            
+            // Clear input regardless of edit mode
+            clearSuccessItems();
+            
+            // Reset edit state
+            state.editingRecordId = null;
+        }
+
+        // Request universe letter - Show save button after generation
+        function requestUniverseLetter() {
+            const items = document.querySelectorAll('.success-item');
+            const successItems = [];
+            
+            items.forEach(item => {
+                const value = item.value.trim();
+                if (value) {
+                    successItems.push(value);
+                }
+            });
+            
+            // Check for at least 5 entries
+            if (successItems.length < 5) {
+                showNotification('请至少填写5个成功的时刻才能收到宇宙来信', true);
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const targetDate = state.editingRecordId || today;
+            
+            // Show loading state
+            elements.universeLetterBtn.disabled = true;
+            elements.universeLetterBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>生成中...';
+            
+            // Hide save button during generation
+            elements.saveSummaryBtn.classList.add('hidden');
+            
+            // Prepare content for AI
+            const successItemsText = successItems.map((item, index) => `${index + 1}. ${item}`).join('\n');
+            
+            // Call AI API to get universe letter
+            fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer d722adabf1574e9fac5876315dbae1cd.hagLcayWj6J357Wp'
+                },
+                body: JSON.stringify({
+                    "model": "glm-4",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "你是宇宙，正在给用户写一封简短的信，回应他们的日常成功。语气要温暖、鼓励和充满爱。让他们感到被看见和接纳，增强他们的自我接纳。保持信件简短而亲切。"
+                        },
+                        {
+                            "role": "user",
+                            "content": `这些是我今天的成功时刻：\n${successItemsText}`
+                        }
+                    ]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.choices && data.choices.length > 0) {
+                    const letter = data.choices[0].message.content;
+                    state.currentLetter = letter; // 保存信件内容供后续保存
+                    
+                    elements.letterDate.textContent = formatDate(targetDate);
+                    elements.letterContent.textContent = letter;
+                    elements.universeLetterContainer.classList.remove('hidden');
+                    showNotification('宇宙来信生成成功！');
+                    
+                    // Show save button after generating letter
+                    elements.saveSummaryBtn.classList.remove('hidden');
+                } else {
+                    throw new Error('未收到有效数据');
+                }
+                
+                // Restore button text
+                elements.universeLetterBtn.disabled = false;
+                elements.universeLetterBtn.innerHTML = '<i class="fa fa-envelope-o mr-2"></i>获取宇宙来信';
+            })
+            .catch(error => {
+                console.error('生成宇宙来信时出错:', error);
+                showNotification('生成信件失败，请重试', true);
+                
+                // Restore button text
+                elements.universeLetterBtn.disabled = false;
+                elements.universeLetterBtn.innerHTML = '<i class="fa fa-envelope-o mr-2"></i>获取宇宙来信';
+            });
+        }
+
+        // Display history records in memories page
+        function displayHistory() {
+            if (!state.userId) return;
+            
+            elements.historyContainer.innerHTML = '';
+            
+            // Sort by date (newest first)
+            const sortedHistory = [...state.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedHistory.forEach(record => {
+                const div = document.createElement('div');
+                div.className = 'p-3 bg-white rounded-xl cursor-pointer hover:bg-light transition shadow-sm';
+                
+                const hasLetter = record.letter !== null;
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">${formatDate(record.date)}</span>
+                        <span class="text-xs px-2 py-1 rounded-full ${hasLetter ? 'bg-primary/10 text-primary' : 'bg-border text-secondary'}">
+                            ${hasLetter ? '已收到来信' : '未收到来信'}
+                        </span>
+                    </div>
+                    <p class="text-sm text-secondary line-clamp-2">
+                        ${record.successItems.slice(0, 2).join('; ')}${record.successItems.length > 2 ? '; 等等' : ''}
+                    </p>
+                `;
+                
+                // Click to view details in modal
+                div.addEventListener('click', () => openMemoryModal(record));
+                
+                elements.historyContainer.appendChild(div);
+            });
+            
+            // Show empty state if no history
+            if (sortedHistory.length === 0) {
+                elements.historyContainer.innerHTML = `
+                    <div class="p-6 text-center text-secondary">
+                        <i class="fa fa-calendar-o text-3xl mb-3"></i>
+                        <p>暂无记录。今天开始记录你的成功时刻吧。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Open memory detail modal
+        function openMemoryModal(record) {
+            state.editingRecordId = record.date; // Store which record we might edit
+            elements.modalDate.textContent = formatDate(record.date);
+            
+            // Populate success items
+            elements.modalSuccessItems.innerHTML = '';
+            record.successItems.forEach((item) => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                elements.modalSuccessItems.appendChild(li);
+            });
+            
+            // Populate letter content
+            if (record.letter) {
+                elements.modalLetterContent.textContent = record.letter;
+            } else {
+                elements.modalLetterContent.textContent = '这一天没有收到来信。';
+            }
+            
+            // Show modal
+            elements.memoryModal.classList.add('show');
+            
+            // Prevent body scrolling
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close memory detail modal
+        function closeMemoryModal() {
+            elements.memoryModal.classList.remove('show');
+            
+            // Allow body scrolling again
+            document.body.style.overflow = '';
+        }
+
+        // Edit memory record
+        function editMemory() {
+            // Close modal first
+            closeMemoryModal();
+            
+            // Find the record to edit
+            const record = state.history.find(item => item.date === state.editingRecordId);
+            if (!record) return;
+            
+            // Navigate to today page
+            navigateToPage('today');
+            
+            // Clear existing items
+            const existingItems = document.querySelectorAll('#successItemsContainer > div:not(#addMoreItemBtn)');
+            existingItems.forEach((item, index) => {
+                if (index >= 5) {
+                    item.remove();
+                }
+            });
+            
+            // Fill form with record data
+            const inputFields = document.querySelectorAll('.success-item');
+            
+            // First clear all fields
+            inputFields.forEach(field => {
+                field.value = '';
+            });
+            
+            // Fill with data, adding more fields if needed
+            record.successItems.forEach((item, index) => {
+                if (inputFields[index]) {
+                    inputFields[index].value = item;
+                } else {
+                    // Add more fields if needed
+                    addMoreSuccessItem();
+                    const newFields = document.querySelectorAll('.success-item');
+                    newFields[index].value = item;
+                }
+            });
+            
+            // Reset button states to match current design
+            elements.saveSummaryBtn.classList.add('hidden');
+            
+            // Show universe letter if exists
+            if (record.letter) {
+                state.currentLetter = record.letter; // Set current letter for edit mode
+                elements.letterDate.textContent = formatDate(record.date);
+                elements.letterContent.textContent = record.letter;
+                elements.universeLetterContainer.classList.remove('hidden');
+                
+                // Show save button in edit mode
+                elements.saveSummaryBtn.classList.remove('hidden');
+            } else {
+                elements.universeLetterContainer.classList.add('hidden');
+            }
+            
+            // Update button states
+            checkSuccessItemsComplete();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Format date (Month Day, Year - Weekday)
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            return date.toLocaleDateString('zh-CN', options);
+        }
+
+        // Save user data to local storage
+        function saveUserData() {
+            if (!state.userId) return;
+            
+            const userData = {
+                history: state.history,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem(`positiveCatData_${state.userId}`, JSON.stringify(userData));
+        }
+
+        // Load user data from local storage
+        function loadUserData() {
+            if (!state.userId) return;
+            
+            const savedData = localStorage.getItem(`positiveCatData_${state.userId}`);
+            if (savedData) {
+                const userData = JSON.parse(savedData);
+                state.history = userData.history || [];
+            } else {
+                state.history = [];
+            }
+        }
+
+        // Affirmations generation functionality
+        function generateAffirmations() {
+            const topic = elements.topicInput.value.trim();
+            
+            if (!topic) {
+                showAffirmationError('请输入你想要肯定的主题');
+                return;
+            }
+            
+            resetAffirmationState();
+            showLoading();
+            
+            // API configuration
+            const API_KEY = '11fba0031acd4588872851660c15d53f.ZFWqXlT17Mt2zP6X';
+            const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+            
+            fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify({
+                    "model": "glm-4",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "你是一个积极肯定语生成器。创建5-7个强有力的、积极的肯定语，专注于给定的主题。让它们个性化，使用'我'的陈述。保持简洁而有力。将每个肯定语作为单独的项目，不带编号或项目符号。"
+                        },
+                        {
+                            "role": "user",
+                            "content": `生成关于以下主题的肯定语：${topic}`
+                        }
+                    ]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.choices && data.choices.length > 0) {
+                    const affirmationsText = data.choices[0].message.content;
+                    const affirmationsArray = affirmationsText.split('\n').filter(item => item.trim() !== '');
+                    
+                    displayAffirmations(affirmationsArray);
+                } else {
+                    throw new Error('未从API收到肯定语');
+                }
+            })
+            .catch(error => {
+                console.error('生成肯定语时出错:', error);
+                showAffirmationError('生成肯定语失败', error.message);
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        function displayAffirmations(affirmations) {
+            elements.affirmations.innerHTML = '';
+            
+            affirmations.forEach((affirmation, index) => {
+                const li = document.createElement('li');
+                li.className = 'bg-light p-3 rounded-lg opacity-0 transform translate-y-2 transition-custom';
+                li.textContent = affirmation;
+                elements.affirmations.appendChild(li);
+                
+                // Add staggered animation
+                setTimeout(() => {
+                    li.style.opacity = '1';
+                    li.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+            
+            elements.result.classList.remove('hidden');
+        }
+
+        function showLoading() {
+            elements.loading.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            elements.loading.classList.add('hidden');
+        }
+
+        function showAffirmationError(message, details = '') {
+            elements.errorMessage.textContent = message;
+            elements.errorDetails.textContent = details;
+            elements.error.classList.remove('hidden');
+        }
+
+        function resetAffirmationState() {
+            elements.result.classList.add('hidden');
+            elements.error.classList.add('hidden');
+            elements.affirmations.innerHTML = '';
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
